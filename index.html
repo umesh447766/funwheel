@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fun Friday Name + Task Wheel</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7b2ff7, #f107a3);
+  }
+
+  .container {
+    text-align: center;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 95%;
+    max-width: 900px;
+  }
+
+  h1 {
+    margin-bottom: 15px;
+  }
+
+  .input-section {
+    margin-bottom: 15px;
+  }
+
+  input {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  button {
+    background: #7b2ff7;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 5px;
+  }
+
+  button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 20px auto;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+  }
+
+  .pointer {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 20px solid #ff3b3b;
+    z-index: 10;
+  }
+
+  .result {
+    margin: 15px 0;
+    font-size: 18px;
+    min-height: 24px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>🎉 Fun Friday Name + Task Wheel</h1>
+
+  <div class="input-section">
+    <input type="text" id="nameInput" placeholder="Enter name" />
+    <button id="addNameBtn">Add</button>
+  </div>
+
+  <div class="wheel-wrapper">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="500" height="500"></canvas>
+  </div>
+
+  <div id="result" class="result">Add names to start!</div>
+
+  <button id="spinBtn">Spin 🎡</button>
+</div>
+
+<script>
+const allTasks = [
+"Present your team like Avengers squad 🦸",
+"Share your funniest work moment 😂",
+"Show off your hidden talent 🎤",
+"Recommend a must-watch movie 🎬",
+"Share your go-to karaoke song 🎶",
+"Describe your work style in 3 emojis 🧑‍💻",
+"Share a fun fact about yourself 🌟",
+"Announce fake award categories for teammates 🎖️",
+"Tell your weird habit 🤭",
+"Share your weirdest work-from-home habit 🏠",
+"🎯 Mimic a teammate — others guess who it is",
+"Act like you're asking for a leave dramatically 🏖️",
+"Act like you're stuck in a boring meeting 😴",
+"Give your “network issue” excuse dramatically 📶",
+"Share your most unusual work-related fear 😱",
+"Share your most embarrassing Teams meeting moment 🙈",
+"Share your weirdest snack combo you eat at work 🍕🍫",
+"If our team had a mascot, what should it be?",
+"Describe your workday using only movie titles 🎥",
+"Share your most creative excuse for being late to a meeting ⏰",
+"Pretend you're a news anchor reporting on our team's latest project 📰",
+"If you were a superhero, what would your work superpower be? 🦸‍♂️",
+"Share your most unusual work-related dream 💤",
+"Pretend you're a weather reporter giving the forecast for our team's mood today 🌤️",
+"Share your most bizarre work-related encounter with a pet 🐶🐱",
+"Describe your workday as if it were a rollercoaster ride 🎢",
+"Share your most creative way to avoid doing a task 🏃‍♂️💨",
+"Pretend you're a chef describing the recipe for a successful project 🍳",
+"Share your most unusual work-related superstition 🧙‍♂️",
+"Describe your workday using only song lyrics 🎵",
+"Pretend you're a motivational speaker giving a pep talk to the team 💪",
+"Share your funny bizarre work-related encounter with a coworker 👽",
+"Describe your workday as if it were a science fiction story 👽",
+
+];
+
+let tasks = [...allTasks];
+let names = [];
+let lastSelected = null;
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const spinBtn = document.getElementById("spinBtn");
+const result = document.getElementById("result");
+const nameInput = document.getElementById("nameInput");
+const addNameBtn = document.getElementById("addNameBtn");
+
+const size = canvas.width;
+const radius = size / 2;
+
+function getSlice() {
+  return (2 * Math.PI) / names.length;
+}
+
+function randomColor(i) {
+  const hue = (i * 137.508) % 360;
+  return `hsl(${hue}, 70%, 55%)`;
+}
+
+function drawWheel(rotation = 0) {
+  ctx.clearRect(0, 0, size, size);
+  if (names.length === 0) return;
+
+  const slice = getSlice();
+
+  names.forEach((name, i) => {
+    const startAngle = i * slice + rotation;
+    const endAngle = startAngle + slice;
+
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, startAngle, endAngle);
+    ctx.fillStyle = randomColor(i);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(radius, radius);
+    ctx.rotate(startAngle + slice / 2);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 14px Arial";
+    ctx.textAlign = "right";
+
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    ctx.fillText(name, radius - 15, 5);
+    ctx.restore();
+  });
+}
+
+addNameBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  if (!name) return;
+  names.push(name);
+  nameInput.value = "";
+  drawWheel();
+});
+
+let spinning = false;
+
+spinBtn.addEventListener("click", () => {
+  if (spinning || names.length === 0 || tasks.length === 0) return;
+
+  // Remove previous selection ONLY when next spin is clicked
+  if (lastSelected) {
+    names = names.filter(n => n !== lastSelected.name);
+    tasks = tasks.filter(t => t !== lastSelected.task);
+    lastSelected = null;
+    drawWheel();
+  }
+
+  spinning = true;
+  spinBtn.disabled = true;
+  result.textContent = "Spinning...";
+
+  const slice = getSlice();
+  const randomIndex = Math.floor(Math.random() * names.length);
+  const randomTaskIndex = Math.floor(Math.random() * tasks.length);
+
+  const selectedName = names[randomIndex];
+  const selectedTask = tasks[randomTaskIndex];
+
+  const extraSpins = 5;
+  const targetAngle =
+    extraSpins * 2 * Math.PI +
+    (Math.PI * 3) / 2 -
+    randomIndex * slice -
+    slice / 2;
+
+  const duration = 3000;
+  const start = performance.now();
+
+  function animate(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    const rotation = targetAngle * easeOut;
+
+    drawWheel(rotation);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      result.textContent = selectedName + " 👉 Task: " + selectedTask;
+
+      lastSelected = {
+        name: selectedName,
+        task: selectedTask
+      };
+
+      spinning = false;
+      spinBtn.disabled = false;
+
+      if (names.length === 1) {
+        spinBtn.textContent = "Finish 🎉";
+      }
+    }
+  }
+
+  requestAnimationFrame(animate);
+});
+
+drawWheel();
+</script>
+</body>
+</html>
